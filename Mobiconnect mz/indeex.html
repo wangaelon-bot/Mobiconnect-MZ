@@ -1,0 +1,412 @@
+
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MobiConnect MZ</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <!-- AUTENTICAÇÃO -->
+    <div class="auth-screen" id="authScreen">
+
+        <div class="auth-card">
+            <h1>MobiConnect <span>MZ</span></h1>
+            <p>Serviços móveis num só lugar</p>
+
+            <form id="authForm">
+
+                <label id="nameLabel" class="hidden">
+                    Nome completo
+                    <input type="text" id="fullName">
+                </label>
+
+                <label>Email</label>
+                <input type="email" id="email" placeholder="nome@email.com" required>
+
+                <label>Palavra-passe</label>
+                <input type="password" id="password" minlength="6" required>
+
+                <button type="submit" id="authSubmit">
+                    Entrar
+                </button>
+
+            </form>
+
+            <p id="switchText">Ainda não tem conta?</p>
+
+            <button id="switchAuth" class="text-button">
+                Criar conta
+            </button>
+
+            <div id="authMessage"></div>
+        </div>
+
+    </div>
+
+
+    <!-- APLICAÇÃO -->
+    <div class="app hidden" id="app">
+
+        <!-- MENU LATERAL -->
+        <aside class="sidebar">
+
+            <h2>MobiConnect <span>MZ</span></h2>
+
+            <button class="nav-link active" data-page="overview">
+                Visão geral
+            </button>
+
+            <button class="nav-link" data-page="packages">
+                Pacotes de Internet
+            </button>
+
+            <button class="nav-link" data-page="recharge">
+                Simular recarga
+            </button>
+
+            <button class="nav-link" data-page="history">
+                Transacções
+            </button>
+
+            <button class="nav-link hidden" id="adminNav" data-page="admin">
+                Administração
+            </button>
+
+            <div class="sidebar-bottom">
+                <p id="sideName">Utilizador</p>
+                <small id="sideEmail"></small>
+
+                <button id="logoutBtn">
+                    Terminar sessão
+                </button>
+                <button class="nav-link" data-page="developer">
+  <span>👨‍💻</span>
+  Desenvolvedor
+</button>
+            </div>
+
+        </aside>
+
+
+        <!-- CONTEÚDO PRINCIPAL -->
+        <main class="main">
+
+            <header class="topbar">
+                <h1 id="pageTitle">Visão geral</h1>
+                <span id="topName">Utilizador</span>
+            </header>
+
+
+            <!-- VISÃO GERAL -->
+            <section class="page active" id="page-overview">
+
+                <div class="welcome-banner">
+                    <h2>Olá, <span id="welcomeName"></span>!</h2>
+                    <p>Bem-vindo ao MobiConnect MZ.</p>
+                </div>
+
+                <div class="stats-grid">
+
+                    <div class="stat-card">
+                        <p>Saldo</p>
+                        <h2 id="balanceValue">0 MT</h2>
+                    </div>
+
+                    <div class="stat-card">
+                        <p>Operações realizadas</p>
+                        <h2 id="transactionCount">0</h2>
+                    </div>
+
+                    <div class="stat-card">
+                        <p>Total</p>
+                        <h2 id="spentValue">0 MT</h2>
+                    </div>
+
+                </div>
+
+                <div class="content-grid">
+
+                    <div class="panel">
+                        <h3>Consumo por operadora</h3>
+                        <div class="chart-wrap">
+                            <canvas id="usageChart"></canvas>
+                            <p id="chartEmpty" class="hidden">
+                                Ainda não existem operações.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <h3>Acesso rápido</h3>
+
+                        <button class="quick-action" data-go="packages">
+                            Consultar pacotes
+                        </button>
+
+                        <button class="quick-action" data-go="recharge">
+                             recarga
+                        </button>
+
+                        <button class="quick-action" data-go="history">
+                            Ver transacções
+                        </button>
+                    </div>
+
+                </div>
+
+                <p class="disclaimer">
+                    Tudo em 1
+                </p>
+
+            </section>
+
+
+            <!-- PACOTES -->
+            <section class="page" id="page-packages">
+
+                <h2>Pacotes de Internet</h2>
+                <p>Consulte os pacotes</p>
+
+                <div class="operator-tabs" id="operatorTabs">
+
+                    <button data-operator="Todas" class="selected">
+                        Todas
+                    </button>
+
+                    <button data-operator="Vodacom">
+                        Vodacom
+                    </button>
+
+                    <button data-operator="Movitel">
+                        Movitel
+                    </button>
+
+                    <button data-operator="Tmcel">
+                        Tmcel
+                    </button>
+
+                </div>
+
+                <div class="package-grid" id="packageGrid"></div>
+
+            </section>
+
+
+            <!-- RECARGAS -->
+            <section class="page" id="page-recharge">
+
+                <h2> recarga</h2>
+
+                <div class="panel">
+
+                    <form id="rechargeForm">
+
+                        <label>Operadora</label>
+
+                        <select id="operatorSelect" required>
+                            <option value="">Seleccione</option>
+                            <option>Vodacom</option>
+                            <option>Movitel</option>
+                            <option>Tmcel</option>
+                        </select>
+
+                        <label>Número de telefone</label>
+
+                        <input
+                            type="tel"
+                            id="phone"
+                            placeholder="841234567"
+                            maxlength="9"
+                            required
+                        >
+
+                        <label>Valor da recarga (MT)</label>
+
+                        <input
+                            type="number"
+                            id="amount"
+                            min="1"
+                            placeholder="100"
+                            required
+                        >
+
+                        <p id="formBalance"></p>
+
+                        <button type="submit" id="rechargeSubmit">
+                            Confirmar compra
+                        </button>
+
+                        <div id="rechargeMessage"></div>
+
+                    </form>
+
+                </div>
+
+            </section>
+            <section class="page" id="page-developer">
+
+  <div class="page-header">
+    <h2>Sobre o Desenvolvedor</h2>
+    <p>Conhece a pessoa por detrás do MobiConnect MZ.</p>
+  </div>
+
+  <div class="developer-container">
+
+    <div class="developer-card">
+
+      <div class="developer-cover"></div>
+
+      <div class="developer-content">
+
+        <img
+          src="images/desenvolvedor.jpg"
+          alt="Fotografia de Elon Wanga"
+          class="developer-photo"
+        >
+
+        <h2>Elon Wanga</h2>
+
+        <span class="developer-role">
+          Desenvolvedor & Criador do MobiConnect MZ
+        </span>
+
+        <div class="developer-line"></div>
+
+        <h3>Sobre mim</h3>
+
+        <p class="developer-bio">
+          Olá! Sou Elon Wanga, criador e desenvolvedor do
+          MobiConnect MZ. Tenho interesse pela tecnologia,
+          programação e desenvolvimento de soluções digitais.
+
+          O meu objectivo é criar plataformas modernas,
+          acessíveis e úteis, capazes de facilitar o dia a dia
+          das pessoas através da tecnologia.
+        </p>
+
+        <h3>Minhas competências</h3>
+
+        <div class="developer-skills">
+          <span>HTML</span>
+          <span>CSS</span>
+          <span>JavaScript</span>
+          <span>Supabase</span>
+          <span>Desenvolvimento Web</span>
+          <span>UI/UX Design</span>
+        </div>
+
+        <h3>Contactos</h3>
+
+        <div class="developer-contact">
+          <p>📧 Email: <span>teuemail@exemplo.com</span></p>
+          <p>📱 WhatsApp: <span>Teu contacto</span></p>
+          <p>📍 Localização: <span>Moçambique</span></p>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+            <!-- HISTÓRICO -->
+            <section class="page" id="page-history">
+
+                <h2>Histórico de transacções</h2>
+
+                <div class="panel table-panel">
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Operadora</th>
+                                <th>Telefone</th>
+                                <th>Valor</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="historyBody"></tbody>
+
+                    </table>
+
+                </div>
+
+                <button id="refreshHistory">
+                    Actualizar histórico
+                </button>
+
+            </section>
+
+
+            <!-- ADMINISTRAÇÃO -->
+            <section class="page" id="page-admin">
+
+                <h2>Painel de administração</h2>
+
+                <div class="stats-grid">
+
+                    <div class="stat-card">
+                        <p>Utilizadores</p>
+                        <h2 id="adminUsers">0</h2>
+                    </div>
+
+                    <div class="stat-card">
+                        <p>Transacções</p>
+                        <h2 id="adminTransactions">0</h2>
+                    </div>
+
+                    <div class="stat-card">
+                        <p>Volume simulado</p>
+                        <h2 id="adminVolume">0 MT</h2>
+                    </div>
+
+                </div>
+
+                <div class="panel table-panel">
+
+                    <h3>Todas as transacções</h3>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Utilizador</th>
+                                <th>Operadora</th>
+                                <th>Telefone</th>
+                                <th>Valor</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="adminHistoryBody"></tbody>
+
+                    </table>
+
+                </div>
+
+                <button id="refreshAdmin">
+                    Actualizar painel
+                </button>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
